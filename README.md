@@ -1,16 +1,41 @@
-# React + Vite
+# Expense Tracker Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small React Proof of Concept for tracking personal income and expenses.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Dashboard summary for balance, income, and expenses
+- Add income or expense transactions
+- Transaction history
+- Filter transactions by type
+- Responsive layout
+- Reusable React components
 
-## React Compiler
+## Tech stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- Vite
+- JavaScript
+- CSS
 
-## Expanding the ESLint configuration
+## Run locally
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+## React concepts demonstrated
+
+- Functional components
+- Props
+- `useState`
+- Event handling
+- Controlled forms
+- List rendering with `map()` and `key`
+- Conditional rendering
+- Derived values with `useMemo`
+
+## Future enhancement
+
+The frontend can be connected to a Spring Boot REST API for persistent transaction storage.
