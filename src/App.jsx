@@ -5,46 +5,11 @@ import ExpenseForm from './components/ExpenseForm'
 import './App.css'
 
 const initialTransactions = [
-  {
-    id: 1,
-    description: 'Monthly salary',
-    category: 'Salary',
-    amount: 60000,
-    type: 'Income',
-    date: '12 Sep 2026',
-  },
-  {
-    id: 2,
-    description: 'Weekend groceries',
-    category: 'Food',
-    amount: 2450,
-    type: 'Expense',
-    date: '11 Sep 2026',
-  },
-  {
-    id: 3,
-    description: 'Cab to office',
-    category: 'Transport',
-    amount: 680,
-    type: 'Expense',
-    date: '10 Sep 2026',
-  },
-  {
-    id: 4,
-    description: 'Movie night',
-    category: 'Entertainment',
-    amount: 1200,
-    type: 'Expense',
-    date: '08 Sep 2026',
-  },
-  {
-    id: 5,
-    description: 'Freelance work',
-    category: 'Other',
-    amount: 8500,
-    type: 'Income',
-    date: '06 Sep 2026',
-  },
+  { id: 1, description: 'Monthly salary', category: 'Salary', amount: 60000, type: 'Income', date: '12 Sep 2026' },
+  { id: 2, description: 'Weekend groceries', category: 'Food', amount: 2450, type: 'Expense', date: '11 Sep 2026' },
+  { id: 3, description: 'Cab to office', category: 'Transport', amount: 680, type: 'Expense', date: '10 Sep 2026' },
+  { id: 4, description: 'Movie night', category: 'Entertainment', amount: 1200, type: 'Expense', date: '08 Sep 2026' },
+  { id: 5, description: 'Freelance work', category: 'Other', amount: 8500, type: 'Income', date: '06 Sep 2026' },
 ]
 
 function App() {
@@ -60,11 +25,7 @@ function App() {
       .filter((transaction) => transaction.type === 'Expense')
       .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    }
+    return { income, expenses, balance: income - expenses }
   }, [transactions])
 
   const filteredTransactions = useMemo(() => {
