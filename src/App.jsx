@@ -1,23 +1,147 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useMemo, useState } from 'react'
 import StatCard from './components/StatCard'
-
+import TransactionTable from './components/TransactionTable'
+import ExpenseForm from './components/ExpenseForm'
 import './App.css'
 
+const initialTransactions = [
+  {
+    id: 1,
+    description: 'Monthly salary',
+    category: 'Salary',
+    amount: 60000,
+    type: 'Income',
+    date: '12 Sep 2026',
+  },
+  {
+    id: 2,
+    description: 'Weekend groceries',
+    category: 'Food',
+    amount: 2450,
+    type: 'Expense',
+    date: '11 Sep 2026',
+  },
+  {
+    id: 3,
+    description: 'Cab to office',
+    category: 'Transport',
+    amount: 680,
+    type: 'Expense',
+    date: '10 Sep 2026',
+  },
+  {
+    id: 4,
+    description: 'Movie night',
+    category: 'Entertainment',
+    amount: 1200,
+    type: 'Expense',
+    date: '08 Sep 2026',
+  },
+  {
+    id: 5,
+    description: 'Freelance work',
+    category: 'Other',
+    amount: 8500,
+    type: 'Income',
+    date: '06 Sep 2026',
+  },
+]
+
 function App() {
+  const [transactions, setTransactions] = useState(initialTransactions)
+  const [filter, setFilter] = useState('All')
+
+  const totals = useMemo(() => {
+    const income = transactions
+      .filter((transaction) => transaction.type === 'Income')
+      .reduce((sum, transaction) => sum + transaction.amount, 0)
+
+    const expenses = transactions
+      .filter((transaction) => transaction.type === 'Expense')
+      .reduce((sum, transaction) => sum + transaction.amount, 0)
+
+    return {
+      income,
+      expenses,
+      balance: income - expenses,
+    }
+  }, [transactions])
+
+  const filteredTransactions = useMemo(() => {
+    if (filter === 'All') return transactions
+    return transactions.filter((transaction) => transaction.type === filter)
+  }, [filter, transactions])
+
+  function handleAddTransaction(transaction) {
+    const newTransaction = {
+      ...transaction,
+      id: Date.now(),
+      date: new Date(`${transaction.date}T00:00:00`).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
+    }
+
+    setTransactions((current) => [newTransaction, ...current])
+  }
+
   return (
-    <div>
-      <h1>Expense Tracker</h1>
-      <p>Manage your income and expenses</p>
+    <div className="app-shell">
+      <header className="topbar">
+        <div>
+          <p className="brand-kicker">Personal finance</p>
+          <h1>Expense Tracker</h1>
+        </div>
+        <div className="user-chip">
+          <span className="avatar">AJ</span>
+          <div>
+            <strong>Abhishek</strong>
+            <span>Dashboard</span>
+          </div>
+        </div>
+      </header>
 
-            <div className="stats-container">
-        <StatCard title="Balance" value="₹42,500" />
-        <StatCard title="Income" value="₹60,000" />
-        <StatCard title="Expenses" value="₹17,500" />
-      </div>
+      <main className="dashboard">
+        <section className="welcome-row">
+          <div>
+            <p className="eyebrow">Overview</p>
+            <h2>Good afternoon, Abhishek</h2>
+            <p className="muted">Here is your current financial snapshot.</p>
+          </div>
+          <div className="period-badge">September 2026</div>
+        </section>
 
+        <section className="stats-container">
+          <StatCard title="Total Balance" value={`₹${totals.balance.toLocaleString('en-IN')}`} />
+          <StatCard title="Total Income" value={`₹${totals.income.toLocaleString('en-IN')}`} />
+          <StatCard title="Total Expenses" value={`₹${totals.expenses.toLocaleString('en-IN')}`} />
+        </section>
+
+        <section className="content-grid">
+          <TransactionTable transactions={filteredTransactions} />
+          <ExpenseForm onAddTransaction={handleAddTransaction} />
+        </section>
+
+        <section className="filter-bar">
+          <div>
+            <p className="eyebrow">Filter</p>
+            <strong>Transaction type</strong>
+          </div>
+          <div className="filter-buttons">
+            {['All', 'Income', 'Expense'].map((type) => (
+              <button
+                key={type}
+                className={`filter-button ${filter === type ? 'active' : ''}`}
+                type="button"
+                onClick={() => setFilter(type)}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   )
 }
