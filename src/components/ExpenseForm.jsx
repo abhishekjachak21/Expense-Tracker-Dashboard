@@ -11,6 +11,7 @@ const initialForm = {
 function ExpenseForm({ onAddTransaction }) {
   const [form, setForm] = useState(initialForm)
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -18,7 +19,7 @@ function ExpenseForm({ onAddTransaction }) {
     setError('')
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const amount = Number(form.amount)
@@ -33,14 +34,20 @@ function ExpenseForm({ onAddTransaction }) {
       return
     }
 
-    onAddTransaction({
-      ...form,
-      description: form.description.trim(),
-      amount,
-    })
-
-    setForm(initialForm)
-    setError('')
+    try {
+      setSaving(true)
+      await onAddTransaction({
+        ...form,
+        description: form.description.trim(),
+        amount,
+      })
+      setForm(initialForm)
+      setError('')
+    } catch (err) {
+      setError(err.message || 'Unable to save transaction.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -110,8 +117,8 @@ function ExpenseForm({ onAddTransaction }) {
 
         {error && <p className="form-error">{error}</p>}
 
-        <button className="primary-button" type="submit">
-          Add transaction
+        <button className="primary-button" type="submit" disabled={saving}>
+          {saving ? 'Saving...' : 'Add transaction'}
         </button>
       </form>
     </section>
