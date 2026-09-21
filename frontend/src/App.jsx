@@ -101,9 +101,11 @@ function App() {
         {error && <div className="api-error">{error}</div>}
 
         <section className="stats-container">
-          <StatCard title="Total Balance" value={`₹${totals.balance.toLocaleString('en-IN')}`} />
-          <StatCard title="Total Income" value={`₹${totals.income.toLocaleString('en-IN')}`} />
-          <StatCard title="Total Expenses" value={`₹${totals.expenses.toLocaleString('en-IN')}`} />
+            <StatCard title="Total Income" value={`₹${totals.income.toLocaleString('en-IN')}`} />
+             <StatCard title="Total Expenses" value={`₹${totals.expenses.toLocaleString('en-IN')}`} />
+             <StatCard title="Total Balance" value={`₹${totals.balance.toLocaleString('en-IN')}`} />
+       
+         
         </section>
 
         <section className="content-grid">
