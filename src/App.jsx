@@ -1,29 +1,57 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import StatCard from './components/StatCard'
 import TransactionTable from './components/TransactionTable'
 import ExpenseForm from './components/ExpenseForm'
+import { createTransaction, getTransactions } from './api'
 import './App.css'
 
-const initialTransactions = [
-  { id: 1, description: 'Monthly salary', category: 'Salary', amount: 60000, type: 'Income', date: '17 Sep 2026' },
-  { id: 2, description: 'Weekend groceries', category: 'Food', amount: 2450, type: 'Expense', date: '16 Sep 2026' },
-  { id: 3, description: 'Cab to office', category: 'Transport', amount: 680, type: 'Expense', date: '15 Sep 2026' },
-  { id: 4, description: 'Movie night', category: 'Entertainment', amount: 1200, type: 'Expense', date: '13 Sep 2026' },
-  { id: 5, description: 'Freelance work', category: 'Other', amount: 10500, type: 'Income', date: '11 Sep 2026' },
-] 
+function formatDate(date) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function normalizeTransaction(transaction) {
+  return {
+    ...transaction,
+    type: transaction.type === 'INCOME' ? 'Income' : 'Expense',
+    date: formatDate(transaction.date),
+  }
+}
 
 function App() {
-  const [transactions, setTransactions] = useState(initialTransactions)
+  const [transactions, setTransactions] = useState([])
   const [filter, setFilter] = useState('All')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        setLoading(true)
+        const data = await getTransactions()
+        setTransactions(data.map(normalizeTransaction))
+        setError('')
+      } catch (err) {
+        setError(err.message || 'Unable to load transactions.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTransactions()
+  }, [])
 
   const totals = useMemo(() => {
     const income = transactions
       .filter((transaction) => transaction.type === 'Income')
-      .reduce((sum, transaction) => sum + transaction.amount, 0)
+      .reduce((sum, transaction) => sum + Number(transaction.amount), 0)
 
     const expenses = transactions
       .filter((transaction) => transaction.type === 'Expense')
-      .reduce((sum, transaction) => sum + transaction.amount, 0)
+      .reduce((sum, transaction) => sum + Number(transaction.amount), 0)
 
     return { income, expenses, balance: income - expenses }
   }, [transactions])
@@ -33,18 +61,15 @@ function App() {
     return transactions.filter((transaction) => transaction.type === filter)
   }, [filter, transactions])
 
-  function handleAddTransaction(transaction) {
-    const newTransaction = {
-      ...transaction,
-      id: Date.now(),
-      date: new Date(`${transaction.date}T00:00:00`).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }),
+  async function handleAddTransaction(transaction) {
+    try {
+      setError('')
+      const created = await createTransaction(transaction)
+      setTransactions((current) => [normalizeTransaction(created), ...current])
+    } catch (err) {
+      setError(err.message || 'Unable to save transaction.')
+      throw err
     }
-
-    setTransactions((current) => [newTransaction, ...current])
   }
 
   return (
@@ -73,6 +98,8 @@ function App() {
           <div className="period-badge">September 2026</div>
         </section>
 
+        {error && <div className="api-error">{error}</div>}
+
         <section className="stats-container">
           <StatCard title="Total Balance" value={`₹${totals.balance.toLocaleString('en-IN')}`} />
           <StatCard title="Total Income" value={`₹${totals.income.toLocaleString('en-IN')}`} />
@@ -80,7 +107,13 @@ function App() {
         </section>
 
         <section className="content-grid">
-          <TransactionTable transactions={filteredTransactions} />
+          {loading ? (
+            <section className="panel loading-panel">
+              <p>Loading transactions...</p>
+            </section>
+          ) : (
+            <TransactionTable transactions={filteredTransactions} />
+          )}
           <ExpenseForm onAddTransaction={handleAddTransaction} />
         </section>
 
