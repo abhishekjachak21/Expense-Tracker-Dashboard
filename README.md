@@ -91,7 +91,7 @@ This creates:
 - Database: `expense_tracker`
 - User: `postgres`
 - Password: `postgres`
-- Port: `5432`
+- Port: `5433`
 
 ### Start Spring Boot
 
