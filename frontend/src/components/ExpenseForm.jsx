@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-const initialForm = {
-  description: '',
-  category: 'Food',
-  amount: '',
-  type: 'Expense',
-  date: new Date().toISOString().slice(0, 10),
+function getInitialForm(selectedMonth) {
+  const today = new Date().toISOString().slice(0, 10)
+  const currentMonth = today.slice(0, 7)
+
+  return {
+    description: '',
+    category: 'Food',
+    amount: '',
+    type: 'Expense',
+    date: selectedMonth === currentMonth ? today : `${selectedMonth}-01`,
+  }
 }
 
-function ExpenseForm({ onAddTransaction }) {
-  const [form, setForm] = useState(initialForm)
+function ExpenseForm({ onAddTransaction, selectedMonth }) {
+  const [form, setForm] = useState(() => getInitialForm(selectedMonth))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setForm(getInitialForm(selectedMonth))
+    setError('')
+  }, [selectedMonth])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -41,7 +51,7 @@ function ExpenseForm({ onAddTransaction }) {
         description: form.description.trim(),
         amount,
       })
-      setForm(initialForm)
+      setForm(getInitialForm(selectedMonth))
       setError('')
     } catch (err) {
       setError(err.message || 'Unable to save transaction.')
