@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @Service
@@ -19,8 +21,11 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getAll() {
-        return repository.findAll().stream()
+    public List<TransactionResponse> getByMonth(YearMonth month) {
+        LocalDate startDate = month.atDay(1);
+        LocalDate endDate = month.atEndOfMonth();
+
+        return repository.findByDateBetween(startDate, endDate).stream()
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .map(TransactionResponse::from)
                 .toList();
@@ -47,13 +52,18 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public SummaryResponse getSummary() {
-        BigDecimal income = repository.findAll().stream()
+    public SummaryResponse getSummary(YearMonth month) {
+        LocalDate startDate = month.atDay(1);
+        LocalDate endDate = month.atEndOfMonth();
+
+        List<Transaction> transactions = repository.findByDateBetween(startDate, endDate);
+
+        BigDecimal income = transactions.stream()
                 .filter(t -> t.getType() == TransactionType.INCOME)
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal expenses = repository.findAll().stream()
+        BigDecimal expenses = transactions.stream()
                 .filter(t -> t.getType() == TransactionType.EXPENSE)
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
