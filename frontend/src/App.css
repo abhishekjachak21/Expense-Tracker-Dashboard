@@ -492,3 +492,28 @@ th {
   place-items: center;
   color: #667085;
 }
+
+
+.period-select {
+  min-width: 190px;
+  padding: 12px 38px 12px 16px;
+  border: 1px solid #d9dee8;
+  border-radius: 999px;
+  background: #fff;
+  color: #475467;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.period-select:focus {
+  border-color: #98a2b3;
+  box-shadow: 0 0 0 3px rgba(16, 24, 40, 0.06);
+}
+
+@media (max-width: 640px) {
+  .period-select {
+    width: 100%;
+  }
+}
