@@ -1,9 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import StatCard from './components/StatCard'
 import TransactionTable from './components/TransactionTable'
 import ExpenseForm from './components/ExpenseForm'
-import { createTransaction, getTransactions } from './api'
+import { createTransaction, getSummary, getTransactions } from './api'
 import './App.css'
+
+const MONTHS = Array.from({ length: 12 }, (_, index) => {
+  const month = String(index + 1).padStart(2, '0')
+  return {
+    value: `2026-${month}`,
+    label: new Date(2026, index, 1).toLocaleDateString('en-IN', {
+      month: 'long',
+      year: 'numeric',
+    }),
+  }
+})
 
 function formatDate(date) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('en-IN', {
@@ -22,55 +33,81 @@ function normalizeTransaction(transaction) {
 }
 
 function App() {
+  const [selectedMonth, setSelectedMonth] = useState('2026-09')
   const [transactions, setTransactions] = useState([])
+  const [summary, setSummary] = useState({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+  })
   const [filter, setFilter] = useState('All')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    async function loadTransactions() {
+    async function loadMonthData() {
       try {
         setLoading(true)
-        const data = await getTransactions()
-        setTransactions(data.map(normalizeTransaction))
         setError('')
+
+        const [transactionData, summaryData] = await Promise.all([
+          getTransactions(selectedMonth),
+          getSummary(selectedMonth),
+        ])
+
+        setTransactions(transactionData.map(normalizeTransaction))
+        setSummary(summaryData)
       } catch (err) {
         setError(err.message || 'Unable to load transactions.')
+        setTransactions([])
+        setSummary({ income: 0, expenses: 0, balance: 0 })
       } finally {
         setLoading(false)
       }
     }
 
-    loadTransactions()
-  }, [])
+    loadMonthData()
+  }, [selectedMonth])
 
-  const totals = useMemo(() => {
-    const income = transactions
-      .filter((transaction) => transaction.type === 'Income')
-      .reduce((sum, transaction) => sum + Number(transaction.amount), 0)
-
-    const expenses = transactions
-      .filter((transaction) => transaction.type === 'Expense')
-      .reduce((sum, transaction) => sum + Number(transaction.amount), 0)
-
-    return { income, expenses, balance: income - expenses }
-  }, [transactions])
-
-  const filteredTransactions = useMemo(() => {
-    if (filter === 'All') return transactions
-    return transactions.filter((transaction) => transaction.type === filter)
-  }, [filter, transactions])
+  const filteredTransactions =
+    filter === 'All'
+      ? transactions
+      : transactions.filter((transaction) => transaction.type === filter)
 
   async function handleAddTransaction(transaction) {
     try {
       setError('')
       const created = await createTransaction(transaction)
-      setTransactions((current) => [normalizeTransaction(created), ...current])
+
+      const createdMonth = transaction.date.slice(0, 7)
+
+      if (createdMonth === selectedMonth) {
+        setTransactions((current) => [normalizeTransaction(created), ...current])
+
+        const nextSummary = {
+          income:
+            transaction.type === 'Income'
+              ? summary.income + Number(transaction.amount)
+              : summary.income,
+          expenses:
+            transaction.type === 'Expense'
+              ? summary.expenses + Number(transaction.amount)
+              : summary.expenses,
+        }
+
+        setSummary({
+          ...nextSummary,
+          balance: nextSummary.income - nextSummary.expenses,
+        })
+      }
     } catch (err) {
       setError(err.message || 'Unable to save transaction.')
       throw err
     }
   }
+
+  const selectedMonthLabel =
+    MONTHS.find((month) => month.value === selectedMonth)?.label || selectedMonth
 
   return (
     <div className="app-shell">
@@ -95,23 +132,36 @@ function App() {
             <h2>Good afternoon, Abhishek</h2>
             <p className="muted">Here is your current financial snapshot.</p>
           </div>
-          <div className="period-badge">September 2026</div>
+
+          <select
+            className="period-select"
+            value={selectedMonth}
+            onChange={(event) => {
+              setSelectedMonth(event.target.value)
+              setFilter('All')
+            }}
+            aria-label="Select transaction month"
+          >
+            {MONTHS.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
         </section>
 
         {error && <div className="api-error">{error}</div>}
 
         <section className="stats-container">
-            <StatCard title="Total Income" value={`₹${totals.income.toLocaleString('en-IN')}`} />
-             <StatCard title="Total Expenses" value={`₹${totals.expenses.toLocaleString('en-IN')}`} />
-             <StatCard title="Total Balance" value={`₹${totals.balance.toLocaleString('en-IN')}`} />
-       
-         
+          <StatCard title="Total Income" value={`₹${Number(summary.income).toLocaleString('en-IN')}`} />
+          <StatCard title="Total Expenses" value={`₹${Number(summary.expenses).toLocaleString('en-IN')}`} />
+          <StatCard title="Total Balance" value={`₹${Number(summary.balance).toLocaleString('en-IN')}`} />
         </section>
 
         <section className="content-grid">
           {loading ? (
             <section className="panel loading-panel">
-              <p>Loading transactions...</p>
+              <p>Loading {selectedMonthLabel} transactions...</p>
             </section>
           ) : (
             <TransactionTable transactions={filteredTransactions} />
