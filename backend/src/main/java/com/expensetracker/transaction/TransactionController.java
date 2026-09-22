@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -20,18 +21,21 @@ public class TransactionController {
     }
 
     @GetMapping
-    public List<TransactionResponse> getTransactions() {
-        return service.getAll();
+    public List<TransactionResponse> getTransactions(
+            @RequestParam(defaultValue = "2026-09") String month) {
+        return service.getByMonth(YearMonth.parse(month));
     }
 
     @GetMapping("/summary")
-    public SummaryResponse getSummary() {
-        return service.getSummary();
+    public SummaryResponse getSummary(
+            @RequestParam(defaultValue = "2026-09") String month) {
+        return service.getSummary(YearMonth.parse(month));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TransactionResponse createTransaction(@Valid @RequestBody CreateTransactionRequest request) {
+    public TransactionResponse createTransaction(
+            @Valid @RequestBody CreateTransactionRequest request) {
         return service.create(request);
     }
 
