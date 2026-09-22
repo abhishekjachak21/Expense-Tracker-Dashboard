@@ -166,7 +166,7 @@ function App() {
           ) : (
             <TransactionTable transactions={filteredTransactions} />
           )}
-          <ExpenseForm onAddTransaction={handleAddTransaction} />
+          <ExpenseForm onAddTransaction={handleAddTransaction} selectedMonth={selectedMonth} />
         </section>
 
         <section className="filter-bar">
