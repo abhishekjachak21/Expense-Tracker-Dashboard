@@ -24,8 +24,12 @@ async function request(path, options = {}) {
   return response.json()
 }
 
-export function getTransactions() {
-  return request('/transactions')
+export function getTransactions(month) {
+  return request(`/transactions?month=${month}`)
+}
+
+export function getSummary(month) {
+  return request(`/transactions/summary?month=${month}`)
 }
 
 export function createTransaction(transaction) {
