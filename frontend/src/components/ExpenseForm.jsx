@@ -110,7 +110,7 @@ function ExpenseForm({ onAddTransaction, selectedMonth }) {
             Category
             <select name="category" value={form.category} onChange={handleChange}>
               <option>Food</option>
-              <option>Transport</option>
+              <option>Travel</option>
               <option>Shopping</option>
               <option>Bills</option>
               <option>Entertainment</option>
